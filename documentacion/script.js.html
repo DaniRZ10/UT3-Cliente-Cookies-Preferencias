@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: script.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: script.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file Personalización de la interfaz: color de fondo, tema visual
+ * y persistencia de las preferencias con cookies.
+ */
+
+// === 1. REFERENCIAS Y CONSTANTES ===
+
+const inputNombre = document.getElementById("nombre");
+const inputColor = document.getElementById("color-fondo");
+const selectTema = document.getElementById("tema");
+const formulario = document.getElementById("form-preferencias");
+const contenedorBienvenida = document.getElementById("contenedor-bienvenida");
+const btnRestablecer = document.getElementById("btn-restablecer");
+
+/**
+ * Días que duran las cookies de nombre y color.
+ * @type {number}
+ */
+const DIAS_CADUCIDAD = 7;
+
+// === 2. ASPECTO VISUAL ===
+
+/**
+ * Aplica un color al fondo de la página como estilo en línea del body.
+ * @param {string} color - Color en hexadecimal.
+ */
+function aplicarColorFondo(color) {
+    document.body.style.backgroundColor = color;
+}
+
+/**
+ * Activa en el body la clase del tema elegido y quita la del otro.
+ * Los estilos de cada tema están definidos en estilos.css.
+ * @param {string} tema - "claro" u "oscuro".
+ */
+function aplicarTema(tema) {
+    if (tema === "oscuro") {
+        document.body.classList.remove("tema-claro");
+        document.body.classList.add("tema-oscuro");
+    } else {
+        document.body.classList.remove("tema-oscuro");
+        document.body.classList.add("tema-claro");
+    }
+}
+
+// === 3. GESTIÓN DE COOKIES ===
+
+/**
+ * Calcula la fecha de caducidad sumando días a la fecha actual.
+ * @param {number} dias - Días a partir de hoy.
+ * @returns {string} Fecha en formato UTC, la que exige el atributo expires.
+ */
+function calcularCaducidad(dias) {
+    const fecha = new Date();
+    fecha.setTime(fecha.getTime() + dias * 24 * 60 * 60 * 1000);
+    return fecha.toUTCString();
+}
+
+/**
+ * Crea o sobrescribe una cookie.
+ * Si no se indican días, es una cookie de sesión:
+ * el navegador la borra al cerrarse.
+ * @param {string} nombre - Nombre de la cookie.
+ * @param {string} valor - Valor a guardar.
+ * @param {number} [dias] - Días hasta que caduca.
+ */
+function guardarCookie(nombre, valor, dias) {
+    // encodeURIComponent protege los espacios, tildes y la "#" del color
+    let cookie = `${nombre}=${encodeURIComponent(valor)}; path=/`;
+
+    if (dias !== undefined) {
+        cookie += `; expires=${calcularCaducidad(dias)}`;
+    }
+
+    document.cookie = cookie;
+}
+
+/**
+ * Busca una cookie por su nombre dentro de document.cookie,
+ * que devuelve todas en una sola cadena: "nombre=Dani; colorFondo=%23ff0000; tema=oscuro".
+ * @param {string} nombre - Nombre de la cookie buscada.
+ * @returns {string|null} Su valor decodificado, o null si no existe.
+ */
+function leerCookie(nombre) {
+    const pares = document.cookie.split("; ");
+
+    for (const par of pares) {
+        const [clave, valor] = par.split("=");
+        if (clave === nombre) {
+            return decodeURIComponent(valor);
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Elimina una cookie poniéndole una fecha de caducidad en el pasado:
+ * el navegador la considera caducada y la borra al momento.
+ * Debe usar el mismo path con el que se creó.
+ * @param {string} nombre - Nombre de la cookie a eliminar.
+ */
+function borrarCookie(nombre) {
+    document.cookie = `${nombre}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+}
+
+// === 4. BLOQUE DE BIENVENIDA ===
+
+/**
+ * Crea el bloque de bienvenida (encabezado H2 y párrafo) con createElement
+ * y textContent, y lo inyecta en el contenedor con appendChild.
+ * Ambos van dentro de un div para poder eliminarlos juntos al restablecer.
+ * @param {string} nombre - Nombre guardado del usuario.
+ */
+function mostrarBienvenida(nombre) {
+    // 1. Crear
+    const bloque = document.createElement("div");
+    const titulo = document.createElement("h2");
+    const parrafo = document.createElement("p");
+
+    // 2. Configurar
+    bloque.id = "bloque-bienvenida";
+    titulo.textContent = `¡Hola de nuevo, ${nombre}!`;
+    parrafo.textContent = "Hemos recuperado tus preferencias guardadas.";
+
+    // 3. Insertar
+    bloque.appendChild(titulo);
+    bloque.appendChild(parrafo);
+    contenedorBienvenida.appendChild(bloque);
+}
+
+// === 5. PREFERENCIAS DEL USUARIO ===
+
+/**
+ * Guarda las tres preferencias en tres cookies diferentes:
+ * nombre y color caducan en 7 días; el tema es una cookie de sesión.
+ */
+function guardarPreferencias() {
+    guardarCookie("nombre", inputNombre.value, DIAS_CADUCIDAD);
+    guardarCookie("colorFondo", inputColor.value, DIAS_CADUCIDAD);
+    guardarCookie("tema", selectTema.value);
+}
+
+/**
+ * Lee las cookies guardadas y, si existen, rellena el formulario
+ * y aplica el color y el tema a la página.
+ */
+function restaurarPreferencias() {
+    const nombre = leerCookie("nombre");
+    const color = leerCookie("colorFondo");
+    const tema = leerCookie("tema");
+
+    // Si hay nombre guardado, el usuario ya se registró antes: se muestra la bienvenida.
+    // null (no existe la cookie) y "" (nombre vacío) cuentan como falso.
+    if (nombre) {
+        inputNombre.value = nombre;
+        mostrarBienvenida(nombre);
+    }
+
+    if (color !== null) {
+        inputColor.value = color;
+        aplicarColorFondo(color);
+    }
+
+    if (tema !== null) {
+        selectTema.value = tema;
+        aplicarTema(tema);
+    }
+}
+
+/**
+ * Devuelve la página a su estado por defecto:
+ * borra las tres cookies, quita el color en línea y las clases de tema del body,
+ * elimina el bloque de bienvenida del DOM y vacía el formulario.
+ */
+function restablecerInterfaz() {
+    borrarCookie("nombre");
+    borrarCookie("colorFondo");
+    borrarCookie("tema");
+
+    // Una cadena vacía elimina el color de fondo en línea.
+    document.body.style.backgroundColor = "";
+    document.body.classList.remove("tema-claro", "tema-oscuro");
+
+    // El bloque solo existe si se mostró la bienvenida al cargar.
+    const bloque = document.getElementById("bloque-bienvenida");
+    if (bloque !== null) {
+        bloque.remove();
+    }
+
+    // Devuelve los campos a sus valores iniciales del HTML (nombre vacío, blanco, Modo Claro).
+    formulario.reset();
+}
+
+// === 6. EVENTOS E INICIO ===
+
+// "input" se dispara en cada cambio mientras se elige el color: el fondo cambia al instante.
+inputColor.addEventListener("input", () => aplicarColorFondo(inputColor.value));
+
+// "change" se dispara al seleccionar otra opción del desplegable.
+selectTema.addEventListener("change", () => aplicarTema(selectTema.value));
+
+// "submit" se dispara al enviar el formulario (botón Guardar Preferencias).
+formulario.addEventListener("submit", (evento) => {
+    // Evita el comportamiento por defecto del formulario: enviar los datos y recargar la página.
+    evento.preventDefault();
+    guardarPreferencias();
+});
+
+// Botón secundario: deja la página y las cookies como al principio.
+btnRestablecer.addEventListener("click", restablecerInterfaz);
+
+// Al cargar la página se recuperan las preferencias guardadas.
+// Gracias a "defer", el HTML ya está construido cuando se ejecuta esta línea.
+restaurarPreferencias();</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#DIAS_CADUCIDAD">DIAS_CADUCIDAD</a></li><li><a href="global.html#aplicarColorFondo">aplicarColorFondo</a></li><li><a href="global.html#aplicarTema">aplicarTema</a></li><li><a href="global.html#borrarCookie">borrarCookie</a></li><li><a href="global.html#calcularCaducidad">calcularCaducidad</a></li><li><a href="global.html#guardarCookie">guardarCookie</a></li><li><a href="global.html#guardarPreferencias">guardarPreferencias</a></li><li><a href="global.html#leerCookie">leerCookie</a></li><li><a href="global.html#mostrarBienvenida">mostrarBienvenida</a></li><li><a href="global.html#restablecerInterfaz">restablecerInterfaz</a></li><li><a href="global.html#restaurarPreferencias">restaurarPreferencias</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Mon Nov 09 2026 13:55:32 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

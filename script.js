@@ -1,5 +1,5 @@
 /**
- * Personalización de la interfaz: color de fondo, tema visual
+ * @file Personalización de la interfaz: color de fondo, tema visual
  * y persistencia de las preferencias con cookies.
  */
 
@@ -12,7 +12,10 @@ const formulario = document.getElementById("form-preferencias");
 const contenedorBienvenida = document.getElementById("contenedor-bienvenida");
 const btnRestablecer = document.getElementById("btn-restablecer");
 
-/** @type {number} Días que duran las cookies de nombre y color. */
+/**
+ * Días que duran las cookies de nombre y color.
+ * @type {number}
+ */
 const DIAS_CADUCIDAD = 7;
 
 // === 2. ASPECTO VISUAL ===
