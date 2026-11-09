@@ -1,0 +1,29 @@
+/* ===== Aspecto por defecto ===== */
+body {
+    font-family: Arial, sans-serif;
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+button {
+    padding: 8px;
+    cursor: pointer;
+}
+
+/* ===== Temas visuales: se activan desde JS con classList ===== */
+.tema-claro {
+    background-color: #ffffff;
+    color: #222222;
+}
+
+.tema-oscuro {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+}

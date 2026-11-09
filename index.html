@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personaliza tu interfaz</title>
+    <link rel="stylesheet" href="estilos.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <h1>Personaliza tu interfaz</h1>
+
+    <!-- Aquí se inyecta la bienvenida si el usuario ya guardó sus preferencias -->
+    <div id="contenedor-bienvenida"></div>
+
+    <form id="form-preferencias">
+        <label for="nombre">Nombre de Usuario</label>
+        <input type="text" id="nombre" name="nombre">
+
+        <label for="color-fondo">Color de fondo</label>
+        <input type="color" id="color-fondo" name="color-fondo" value="#ffffff">
+
+        <label for="tema">Tema visual</label>
+        <select id="tema" name="tema">
+            <option value="claro">Modo Claro</option>
+            <option value="oscuro">Modo Oscuro</option>
+        </select>
+
+        <button type="button" id="btn-guardar">Guardar Preferencias</button>
+        <button type="button" id="btn-restablecer">Restablecer Interfaz</button>
+    </form>
+</body>
+</html>
