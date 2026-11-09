@@ -9,6 +9,7 @@ const inputNombre = document.getElementById("nombre");
 const inputColor = document.getElementById("color-fondo");
 const selectTema = document.getElementById("tema");
 const formulario = document.getElementById("form-preferencias");
+const contenedorBienvenida = document.getElementById("contenedor-bienvenida");
 
 /** @type {number} Días que duran las cookies de nombre y color. */
 const DIAS_CADUCIDAD = 7;
@@ -89,7 +90,32 @@ function leerCookie(nombre) {
     return null;
 }
 
-// === 4. PREFERENCIAS DEL USUARIO ===
+// === 4. BLOQUE DE BIENVENIDA ===
+
+/**
+ * Crea el bloque de bienvenida (encabezado H2 y párrafo) con createElement
+ * y textContent, y lo inyecta en el contenedor con appendChild.
+ * Ambos van dentro de un div para poder eliminarlos juntos al restablecer.
+ * @param {string} nombre - Nombre guardado del usuario.
+ */
+function mostrarBienvenida(nombre) {
+    // 1. Crear
+    const bloque = document.createElement("div");
+    const titulo = document.createElement("h2");
+    const parrafo = document.createElement("p");
+
+    // 2. Configurar
+    bloque.id = "bloque-bienvenida";
+    titulo.textContent = `¡Hola de nuevo, ${nombre}!`;
+    parrafo.textContent = "Hemos recuperado tus preferencias guardadas.";
+
+    // 3. Insertar
+    bloque.appendChild(titulo);
+    bloque.appendChild(parrafo);
+    contenedorBienvenida.appendChild(bloque);
+}
+
+// === 5. PREFERENCIAS DEL USUARIO ===
 
 /**
  * Guarda las tres preferencias en tres cookies diferentes:
@@ -110,8 +136,11 @@ function restaurarPreferencias() {
     const color = leerCookie("colorFondo");
     const tema = leerCookie("tema");
 
-    if (nombre !== null) {
+    // Si hay nombre guardado, el usuario ya se registró antes: se muestra la bienvenida.
+    // null (no existe la cookie) y "" (nombre vacío) cuentan como falso.
+    if (nombre) {
         inputNombre.value = nombre;
+        mostrarBienvenida(nombre);
     }
 
     if (color !== null) {
@@ -125,7 +154,7 @@ function restaurarPreferencias() {
     }
 }
 
-// === 5. EVENTOS E INICIO ===
+// === 6. EVENTOS E INICIO ===
 
 // "input" se dispara en cada cambio mientras se elige el color: el fondo cambia al instante.
 inputColor.addEventListener("input", () => aplicarColorFondo(inputColor.value));
