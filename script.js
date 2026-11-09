@@ -10,6 +10,7 @@ const inputColor = document.getElementById("color-fondo");
 const selectTema = document.getElementById("tema");
 const formulario = document.getElementById("form-preferencias");
 const contenedorBienvenida = document.getElementById("contenedor-bienvenida");
+const btnRestablecer = document.getElementById("btn-restablecer");
 
 /** @type {number} Días que duran las cookies de nombre y color. */
 const DIAS_CADUCIDAD = 7;
@@ -90,6 +91,16 @@ function leerCookie(nombre) {
     return null;
 }
 
+/**
+ * Elimina una cookie poniéndole una fecha de caducidad en el pasado:
+ * el navegador la considera caducada y la borra al momento.
+ * Debe usar el mismo path con el que se creó.
+ * @param {string} nombre - Nombre de la cookie a eliminar.
+ */
+function borrarCookie(nombre) {
+    document.cookie = `${nombre}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+}
+
 // === 4. BLOQUE DE BIENVENIDA ===
 
 /**
@@ -154,6 +165,30 @@ function restaurarPreferencias() {
     }
 }
 
+/**
+ * Devuelve la página a su estado por defecto:
+ * borra las tres cookies, quita el color en línea y las clases de tema del body,
+ * elimina el bloque de bienvenida del DOM y vacía el formulario.
+ */
+function restablecerInterfaz() {
+    borrarCookie("nombre");
+    borrarCookie("colorFondo");
+    borrarCookie("tema");
+
+    // Una cadena vacía elimina el color de fondo en línea.
+    document.body.style.backgroundColor = "";
+    document.body.classList.remove("tema-claro", "tema-oscuro");
+
+    // El bloque solo existe si se mostró la bienvenida al cargar.
+    const bloque = document.getElementById("bloque-bienvenida");
+    if (bloque !== null) {
+        bloque.remove();
+    }
+
+    // Devuelve los campos a sus valores iniciales del HTML (nombre vacío, blanco, Modo Claro).
+    formulario.reset();
+}
+
 // === 6. EVENTOS E INICIO ===
 
 // "input" se dispara en cada cambio mientras se elige el color: el fondo cambia al instante.
@@ -168,6 +203,9 @@ formulario.addEventListener("submit", (evento) => {
     evento.preventDefault();
     guardarPreferencias();
 });
+
+// Botón secundario: deja la página y las cookies como al principio.
+btnRestablecer.addEventListener("click", restablecerInterfaz);
 
 // Al cargar la página se recuperan las preferencias guardadas.
 // Gracias a "defer", el HTML ya está construido cuando se ejecuta esta línea.
